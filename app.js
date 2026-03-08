@@ -797,7 +797,7 @@ function setupInstallBanner() {
 
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js').catch(e => console.log('SW:', e));
+    navigator.serviceWorker.register('./service-worker.js').catch(e => console.log('SW:', e));
   }
 }
 
