@@ -683,3 +683,121 @@ body {
   .memory-card { margin: 0 auto 16px; max-width: 440px; }
   .login-box { max-width: 400px; }
 }
+
+/* ============================================================
+   EAGLES v2 ADDITIONS
+   ============================================================ */
+
+/* ---- iOS Install Tip ---- */
+.ios-tip {
+  position: fixed; bottom: 90px; left: 16px; right: 16px;
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 300;
+  transform: translateY(120%);
+  transition: transform 0.4s cubic-bezier(.34,1.56,.64,1);
+  border: 2px solid var(--gold);
+}
+.ios-tip.show { transform: translateY(0); }
+.ios-tip-inner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px;
+}
+.ios-tip-inner div { flex: 1; font-size: 13px; color: var(--navy); line-height: 1.4; }
+
+/* ---- Avatar Modal ---- */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(13,31,53,0.7);
+  backdrop-filter: blur(8px);
+  z-index: 500;
+  display: none; align-items: flex-end; justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+  background: white;
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 24px 20px 40px;
+  width: 100%; max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.modal-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; color: var(--navy); }
+.modal-close { background: var(--grey-light); border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.modal-section-title { font-size: 12px; font-weight: 600; color: var(--grey); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+
+.avatar-upload-btns { display: flex; gap: 10px; margin-bottom: 8px; }
+.avatar-upload-btn {
+  flex: 1; padding: 14px 8px;
+  border: 2px dashed var(--grey-light);
+  border-radius: var(--radius-sm);
+  background: var(--off-white);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500;
+  color: var(--navy); cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  text-align: center;
+}
+.avatar-upload-btn:active { border-color: var(--gold); background: var(--gold-pale); }
+
+.avatar-emoji-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+}
+.avatar-option {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  background: var(--off-white);
+  border: 2px solid transparent;
+  font-size: 28px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.avatar-option:active { transform: scale(0.92); border-color: var(--gold); background: var(--gold-pale); }
+
+/* ---- Card Badges ---- */
+.card-role-tag {
+  font-size: 11px; color: var(--grey); font-weight: 400;
+  background: var(--off-white); padding: 2px 6px; border-radius: 10px; margin-left: 4px;
+}
+.card-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.card-activity-badge {
+  background: var(--gold-pale); color: var(--navy);
+  padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500;
+}
+.card-emotion-badge {
+  background: #fff0f5; color: #c0392b;
+  padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500;
+}
+.card-tag-badge {
+  background: #f0f8ff; color: var(--navy-light);
+  padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500;
+}
+
+/* ---- Comment bubbles ---- */
+.comment-item { display: flex; gap: 8px; margin-bottom: 10px; align-items: flex-start; }
+.comment-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: white; flex-shrink: 0;
+}
+.comment-bubble {
+  background: var(--off-white); border-radius: 0 12px 12px 12px;
+  padding: 8px 12px; flex: 1;
+}
+.comment-author { font-size: 12px; font-weight: 700; color: var(--navy); display: block; margin-bottom: 2px; }
+.comment-text { font-size: 13px; color: #444; }
+
+/* ---- Upload hint ---- */
+.photo-upload-hint { font-size: 11px; color: var(--grey); margin-top: 4px; text-align: center; }
+
+/* ---- Tag chip ---- */
+.tag-chip { display: flex; align-items: center; gap: 6px; }
+
+/* ---- Profile avatar hint ---- */
+.profile-avatar-wrap { cursor: pointer; transition: transform 0.2s; }
+.profile-avatar-wrap:active { transform: scale(0.95); }
