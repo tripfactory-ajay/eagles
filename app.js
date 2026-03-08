@@ -68,46 +68,43 @@ function initFirebase() {
 }
 
 // ============================================================
-// PWA INSTALL
+// PWA INSTALL — only fires when user explicitly taps the button
+// NEVER auto-shown. Banner div is kept but never given .show class automatically.
 // ============================================================
 function setupPWAInstall() {
-  // Capture install event early, but ONLY show prompt after user is logged in
+  // Silently capture the install event — never auto-show anything
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     deferredInstall = e;
+    // DO NOT call showInstallBanner here — user must request it
   });
   window.addEventListener('appinstalled', () => {
-    hideInstallBanner();
-    showToast('🦅 Eagles installed on your home screen!');
+    showToast('🦅 Eagles is now on your home screen!');
     deferredInstall = null;
   });
-  document.getElementById('btn-install')?.addEventListener('click', triggerInstall);
-  document.getElementById('btn-dismiss-install')?.addEventListener('click', hideInstallBanner);
 }
 
-function showInstallPromptIfReady() {
-  // Called after login — check if already installed first
+// Called ONLY by the "Install Eagles App" button in profile page
+async function triggerInstall() {
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || !!window.navigator.standalone;
-  if (isStandalone) return;
+  if (isStandalone) { showToast('✅ Eagles is already installed!'); return; }
+
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
   if (isIOS) {
-    setTimeout(showIOSInstallTip, 5000);
-  } else if (deferredInstall) {
-    setTimeout(showInstallBanner, 5000);
+    showIOSInstallTip();
+    return;
+  }
+  if (deferredInstall) {
+    await deferredInstall.prompt();
+    deferredInstall = null;
+  } else {
+    showToast('In Chrome: tap ⋮ menu → "Add to Home screen"');
   }
 }
 
-async function triggerInstall() {
-  if (!deferredInstall) return;
-  hideInstallBanner();
-  await deferredInstall.prompt();
-  deferredInstall = null;
-}
-function showInstallBanner() { document.getElementById('install-banner')?.classList.add('show'); }
-function hideInstallBanner() { document.getElementById('install-banner')?.classList.remove('show'); }
 function showIOSInstallTip() {
   const tip = document.getElementById('ios-tip');
-  if (tip) { tip.classList.add('show'); setTimeout(() => tip.classList.remove('show'), 9000); }
+  if (tip) { tip.classList.add('show'); setTimeout(() => tip.classList.remove('show'), 10000); }
 }
 
 // ============================================================
@@ -147,13 +144,14 @@ async function onLoggedIn() {
   showLoading(false);
   showScreen('app');
   updateHeaderAvatar();
-  await ensureDemoData();
-  showPage('home');
+  // Load feed immediately — don't wait for seed data
   loadFeed();
   loadCalendar();
-  // Show install prompt and notification request AFTER login, with delays
-  showInstallPromptIfReady();
-  setTimeout(requestNotifications, 6000);
+  showPage('home');
+  // Seed demo data in background if needed
+  ensureDemoData();
+  // Ask for notifications after a delay — no install prompt auto-shown
+  setTimeout(requestNotifications, 5000);
 }
 
 async function requestNotifications() {
@@ -213,10 +211,12 @@ function setupNav() {
     });
   });
 }
+let feedLoaded = false;
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(`page-${name}`)?.classList.add('active');
-  if(name==='home') loadFeed();
+  // Feed uses real-time listener so no need to reload each visit
+  // Only reload activities/profile/calendar as they are one-time fetches
   if(name==='activities') renderActivities();
   if(name==='profile') renderProfile();
   if(name==='calendar') loadCalendar();

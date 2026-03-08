@@ -1,11 +1,11 @@
-const CACHE_NAME = 'eagles-v1';
+const CACHE_NAME = 'eagles-v4';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/app.js',
-  '/firebase/firebase-config.js',
-  '/manifest.json'
+  './',
+  './index.html',
+  './style.css',
+  './app.js',
+  './firebase-config.js',
+  './manifest.json'
 ];
 
 self.addEventListener('install', e => {
@@ -14,14 +14,21 @@ self.addEventListener('install', e => {
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-  ));
+  // Delete ALL old caches on activation
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => {
+        console.log('Deleting old cache:', k);
+        return caches.delete(k);
+      }))
+    )
+  );
   self.clients.claim();
 });
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  // Network first — always try fresh, fall back to cache
   e.respondWith(
     fetch(e.request)
       .then(res => {
@@ -34,10 +41,9 @@ self.addEventListener('fetch', e => {
 });
 
 self.addEventListener('push', e => {
-  const data = e.data?.json() || { title: 'Eagles', body: 'New family memory!' };
+  const data = e.data?.json() || { title: 'Eagles 🦅', body: 'New family memory!' };
   e.waitUntil(self.registration.showNotification(data.title, {
     body: data.body,
-    icon: '/assets/icons/icon-192.png',
-    badge: '/assets/icons/icon-192.png'
+    icon: './assets/icons/icon-192.png'
   }));
 });

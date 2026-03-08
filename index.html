@@ -14,20 +14,12 @@
 </head>
 <body>
 
-<!-- PWA INSTALL BANNER -->
-<div class="install-banner" id="install-banner">
-  <span style="font-size:22px">🦅</span>
-  <div class="install-banner-text"><strong>Install Eagles App</strong><br><span style="font-size:11px">Add to home screen for the best experience</span></div>
-  <button class="install-btn" id="btn-install">Install Now</button>
-  <button class="install-dismiss" id="btn-dismiss-install">✕</button>
-</div>
-
-<!-- iOS INSTALL TIP -->
+<!-- iOS INSTALL TIP — only shown when user taps Install button in profile -->
 <div class="ios-tip" id="ios-tip">
   <div class="ios-tip-inner">
     <span style="font-size:28px">🦅</span>
-    <div><strong>Install on iPhone</strong><br>Tap <strong>Share ⎙</strong> then <strong>"Add to Home Screen"</strong></div>
-    <button onclick="document.getElementById('ios-tip').classList.remove('show')" style="background:none;border:none;font-size:20px;cursor:pointer">✕</button>
+    <div><strong>Install Eagles on your iPhone</strong><br>Tap <strong>Share ⎙</strong> then tap <strong>"Add to Home Screen"</strong></div>
+    <button onclick="document.getElementById('ios-tip').classList.remove('show')" style="background:none;border:none;font-size:20px;cursor:pointer;padding:4px">✕</button>
   </div>
 </div>
 
