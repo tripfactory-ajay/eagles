@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0d1f35">
+  <meta name="description" content="Eagles – Private family travel memory app for the Kumar family">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Eagles">
+
+  <title>Eagles 🦅</title>
+
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     INSTALL BANNER
+     ══════════════════════════════════════ -->
+<div class="install-banner" id="install-banner">
+  <span>🦅</span>
+  <div class="install-banner-text">Install Eagles App for the best experience</div>
+  <button class="install-btn" id="btn-install">Install</button>
+  <button class="install-dismiss" id="btn-dismiss-install">✕</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     SPLASH SCREEN
+     ══════════════════════════════════════ -->
+<div class="screen" id="splash">
+  <div class="splash-content">
+    <div class="splash-eagle">🦅</div>
+    <div class="splash-title">EAGLES</div>
+    <div class="splash-sub">Family Travel Memories</div>
+    <button class="btn-enter" id="btn-enter">Enter the Nest</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     LOGIN SCREEN
+     ══════════════════════════════════════ -->
+<div class="screen" id="login">
+  <div class="login-box">
+    <div class="login-logo">
+      <span>🦅 EAGLES</span>
+      <span>Kumar Family · Private</span>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="your@email.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn-login" id="btn-login">Sign In</button>
+    <div class="divider">or</div>
+    <button class="btn-demo" id="btn-demo">
+      🦅 Demo Login – Dad Raj Kumar
+    </button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN APP
+     ══════════════════════════════════════ -->
+<div class="screen" id="app">
+
+  <!-- Header -->
+  <div class="app-header">
+    <div class="header-logo">🦅 EAGLES</div>
+    <div class="header-right">
+      <div class="header-notif">
+        🔔
+        <div class="notif-dot"></div>
+      </div>
+      <div class="header-avatar" id="header-avatar" onclick="showPage('profile')">R</div>
+    </div>
+  </div>
+
+  <!-- ── HOME PAGE ── -->
+  <div class="page" id="page-home">
+    <div class="feed-header">
+      <div class="feed-title">Family Wall</div>
+      <div class="feed-sub">The Kumar family memories ✨</div>
+    </div>
+
+    <!-- Stories row -->
+    <div class="story-row">
+      <div class="story-item" onclick="showPage('add')">
+        <div class="story-ring">
+          <div class="story-avatar" style="background:linear-gradient(135deg,#c9a84c,#e07b4a);font-size:28px">+</div>
+        </div>
+        <div class="story-name">Add</div>
+      </div>
+      <div class="story-item">
+        <div class="story-ring"><div class="story-avatar" style="background:#1a3a5c">R</div></div>
+        <div class="story-name">Raj</div>
+      </div>
+      <div class="story-item">
+        <div class="story-ring"><div class="story-avatar" style="background:#c8763a">F</div></div>
+        <div class="story-name">Fiona</div>
+      </div>
+      <div class="story-item">
+        <div class="story-ring"><div class="story-avatar" style="background:#2d7d5a">N</div></div>
+        <div class="story-name">Natasha</div>
+      </div>
+      <div class="story-item">
+        <div class="story-ring"><div class="story-avatar" style="background:#7d2d6b">T</div></div>
+        <div class="story-name">Tanya</div>
+      </div>
+    </div>
+
+    <!-- Feed -->
+    <div class="memory-feed" id="memory-feed">
+      <div class="empty-state">
+        <div class="empty-state-icon">🦅</div>
+        <p>Loading memories…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ADD MEMORY PAGE ── -->
+  <div class="page" id="page-add">
+    <div class="add-page">
+      <div class="page-title">New Memory</div>
+
+      <div class="photo-upload-area" id="photo-upload-area">
+        <div class="photo-upload-icon">📷</div>
+        <div class="photo-upload-text">Tap to add a photo</div>
+      </div>
+      <input type="file" id="photo-input" accept="image/*">
+
+      <div class="form-field">
+        <label>Date</label>
+        <input type="date" id="memory-date">
+      </div>
+      <div class="form-field">
+        <label>Location</label>
+        <input type="text" id="memory-location" placeholder="e.g. Dubai, UAE">
+      </div>
+      <div class="form-field">
+        <label>Description</label>
+        <textarea id="memory-desc" placeholder="Tell the story of this memory…"></textarea>
+      </div>
+      <div class="form-field">
+        <label>Activity</label>
+        <div class="chip-group" id="activity-chips"></div>
+      </div>
+      <div class="form-field">
+        <label>How did it feel?</label>
+        <div class="chip-group" id="emotion-chips"></div>
+      </div>
+
+      <button class="btn-submit" id="btn-submit-memory">🦅 Save Memory</button>
+    </div>
+  </div>
+
+  <!-- ── CALENDAR PAGE ── -->
+  <div class="page" id="page-calendar">
+    <div class="calendar-page">
+      <div class="page-title">Memory Calendar</div>
+
+      <div class="cal-nav">
+        <button id="cal-prev">‹</button>
+        <div class="cal-month" id="cal-month-label"></div>
+        <button id="cal-next">›</button>
+      </div>
+
+      <div class="cal-grid" id="cal-grid"></div>
+
+      <div class="cal-memories" style="margin-top:24px">
+        <div class="cal-memories-title" id="cal-memories-title">Select a day to view memories</div>
+        <div id="cal-memories-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ACTIVITIES PAGE ── -->
+  <div class="page" id="page-activities">
+    <div class="activities-page">
+      <div class="page-title">Activities</div>
+      <div class="activity-filters" id="activity-filter-row"></div>
+      <div class="activities-grid" id="activities-grid">
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--grey)">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PROFILE PAGE ── -->
+  <div class="page" id="page-profile">
+    <div class="profile-page">
+      <div class="profile-hero">
+        <div class="profile-avatar-wrap" id="profile-avatar">R</div>
+        <div class="profile-name" id="profile-name">Raj Kumar</div>
+        <div class="profile-role" id="profile-role">Dad</div>
+      </div>
+
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <div class="profile-stat-num" id="stat-memories">0</div>
+          <div class="profile-stat-label">Memories</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-num" id="stat-likes">0</div>
+          <div class="profile-stat-label">Likes Got</div>
+        </div>
+        <div class="profile-stat">
+          <div class="profile-stat-num" id="stat-liked">0</div>
+          <div class="profile-stat-label">Likes Given</div>
+        </div>
+      </div>
+
+      <div class="family-section">
+        <div class="section-title">The Kumar Family 🦅</div>
+        <div id="family-roster"></div>
+      </div>
+
+      <div class="profile-actions">
+        <button class="profile-action-btn" onclick="showToast('Notifications coming soon!')">
+          <span>🔔</span> Notification Settings
+        </button>
+        <button class="profile-action-btn" onclick="showToast('More options coming soon!')">
+          <span>⚙️</span> App Settings
+        </button>
+        <button class="profile-action-btn danger" onclick="logout()">
+          <span>🚪</span> Sign Out
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-page="home">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">Home</div>
+    </div>
+    <div class="nav-item" data-page="calendar">
+      <div class="nav-icon">📅</div>
+      <div class="nav-label">Calendar</div>
+    </div>
+    <div class="nav-item add-btn" data-page="add">
+      <div class="nav-icon-wrap">+</div>
+      <div class="nav-label" style="color:var(--grey);font-size:10px;margin-top:2px">Add</div>
+    </div>
+    <div class="nav-item" data-page="activities">
+      <div class="nav-icon">⚡</div>
+      <div class="nav-label">Activities</div>
+    </div>
+    <div class="nav-item" data-page="profile">
+      <div class="nav-icon">👤</div>
+      <div class="nav-label">Profile</div>
+    </div>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- ══════════════════════════════════════
+     GLOBAL UI
+     ══════════════════════════════════════ -->
+<div class="toast" id="toast"></div>
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     FIREBASE SDK (v9 compat)
+     ══════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Cloudinary handles photo uploads (no Firebase Storage needed) -->
+
+<!-- App config + scripts -->
+<script src="/firebase-config.js"></script>
+<script src="/app.js"></script>
+
+</body>
+</html>
