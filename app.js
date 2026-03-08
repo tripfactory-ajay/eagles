@@ -71,22 +71,30 @@ function initFirebase() {
 // PWA INSTALL
 // ============================================================
 function setupPWAInstall() {
+  // Capture install event early, but ONLY show prompt after user is logged in
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     deferredInstall = e;
-    setTimeout(showInstallBanner, 1500);
   });
   window.addEventListener('appinstalled', () => {
     hideInstallBanner();
     showToast('🦅 Eagles installed on your home screen!');
+    deferredInstall = null;
   });
   document.getElementById('btn-install')?.addEventListener('click', triggerInstall);
   document.getElementById('btn-dismiss-install')?.addEventListener('click', hideInstallBanner);
+}
 
-  // iOS Safari tip
+function showInstallPromptIfReady() {
+  // Called after login — check if already installed first
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || !!window.navigator.standalone;
+  if (isStandalone) return;
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  if (isIOS && !isStandalone) setTimeout(showIOSInstallTip, 3000);
+  if (isIOS) {
+    setTimeout(showIOSInstallTip, 5000);
+  } else if (deferredInstall) {
+    setTimeout(showInstallBanner, 5000);
+  }
 }
 
 async function triggerInstall() {
@@ -143,7 +151,9 @@ async function onLoggedIn() {
   showPage('home');
   loadFeed();
   loadCalendar();
-  setTimeout(requestNotifications, 3000);
+  // Show install prompt and notification request AFTER login, with delays
+  showInstallPromptIfReady();
+  setTimeout(requestNotifications, 6000);
 }
 
 async function requestNotifications() {
@@ -605,3 +615,76 @@ function showScreen(name) { document.querySelectorAll('.screen').forEach(s=>s.cl
 function showLoading(show) { document.getElementById('loading-overlay')?.classList.toggle('show',show); }
 function showToast(msg,duration=2800) { const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),duration); }
 function logout() { auth.signOut().then(()=>{ currentUser=null;if(unsubscribeFeed)unsubscribeFeed();showScreen('splash');showToast('Signed out 👋'); }); }
+
+// ============================================================
+// OUTLOOK / ICAL CALENDAR EXPORT
+// ============================================================
+async function exportToCalendar() {
+  showLoading(true);
+  try {
+    const snap = await db.collection('eagles_memories').orderBy('timestamp','desc').get();
+    if (snap.empty) { showToast('No memories to export'); showLoading(false); return; }
+
+    let ical = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Eagles Family App//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'X-WR-CALNAME:Eagles Family Memories',
+      'X-WR-CALDESC:The Kumar family travel memories and activities',
+      'X-WR-TIMEZONE:Asia/Dubai'
+    ];
+
+    snap.docs.forEach(doc => {
+      const m = doc.data();
+      const info = FAMILY[m.uid] || { name: 'Family' };
+      const act = ACTIVITIES.find(a => a.id === m.activity) || { icon: '📍', label: m.activity || 'Memory' };
+      const emo = EMOTIONS.find(e => e.id === m.emotion) || { icon: '😊' };
+      const tagged = (m.taggedMembers || []).map(uid => FAMILY[uid]?.name).filter(Boolean).join(', ');
+
+      // Format date as YYYYMMDD
+      const dateStr = (m.date || '2025-01-01').replace(/-/g, '');
+      const uid_cal = `eagles-${doc.id}@kumar-family`;
+      const summary = `${act.icon} ${act.label} – ${info.name}${tagged ? ' with ' + tagged : ''}`;
+      const desc = [
+        m.description || '',
+        m.location ? `📍 ${m.location}` : '',
+        `${emo.icon} ${emo.label || m.emotion || ''}`,
+        tagged ? `👥 ${tagged}` : ''
+      ].filter(Boolean).join('\\n');
+
+      ical.push(
+        'BEGIN:VEVENT',
+        `UID:${uid_cal}`,
+        `DTSTART;VALUE=DATE:${dateStr}`,
+        `DTEND;VALUE=DATE:${dateStr}`,
+        `SUMMARY:${summary}`,
+        `DESCRIPTION:${desc}`,
+        m.location ? `LOCATION:${m.location}` : '',
+        `CATEGORIES:${act.label}`,
+        'END:VEVENT'
+      ).filter ? ical : null;
+
+      // Remove empty lines
+      ical = ical.filter(l => l !== null && l !== '');
+    });
+
+    ical.push('END:VCALENDAR');
+
+    const blob = new Blob([ical.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'eagles-family-memories.ics';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('📅 Calendar exported! Open the .ics file to import into Outlook');
+  } catch(e) {
+    console.error('Calendar export:', e);
+    showToast('Export failed – try again');
+  }
+  showLoading(false);
+}
