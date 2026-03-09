@@ -265,12 +265,16 @@ function applyAv(el, uid) {
 function getMyFamilyUID() {
   if (!currentUser) return 'demo-raj-001';
   const email = (currentUser.email || '').toLowerCase();
-  // Match by email keywords: raj, fiona, natasha, tanya
-  for (const [uid, f] of Object.entries(FAMILY)) {
-    if (email.includes(f.short.toLowerCase())) return uid;
-  }
-  // Default demo user → Raj
-  return 'demo-raj-001';
+  // Exact email → family UID mapping
+  const emailMap = {
+    'raj@kumar.family':     'demo-raj-001',
+    'fiona@kumar.family':   'demo-fiona-002',
+    'natasha@kumar.family': 'demo-natasha-003',
+    'tanya@kumar.family':   'demo-tanya-004',
+    'anya@kumar.family':    'demo-tanya-004',  // Anya maps to Tanya's profile
+    'demo@eagles.app':      'demo-raj-001'
+  };
+  return emailMap[email] || 'demo-raj-001';
 }
 
 function refreshHeaderAvatar() {

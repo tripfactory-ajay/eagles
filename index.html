@@ -97,7 +97,7 @@
 </div>
 
 <!-- ============================================================
-     SCREEN: LOGIN  (demo button only — no family cards)
+     SCREEN: LOGIN
      ============================================================ -->
 <div class="screen" id="screen-login" style="display:none">
   <div class="login-inner">
@@ -107,20 +107,18 @@
       <div class="login-sub">Kumar Family Memories</div>
     </div>
 
-    <!-- Demo login — main CTA -->
-    <button class="btn-demo-login" id="btn-demo" onclick="demoLogin()">
-      <span class="demo-btn-icon">🦅</span>
-      <span>Enter as Demo User</span>
-    </button>
-
-    <!-- Email fallback -->
-    <div class="login-divider"><span>or sign in with email</span></div>
     <div class="email-login-form">
       <input type="email" id="inp-email" placeholder="Email address" autocomplete="email">
       <input type="password" id="inp-password" placeholder="Password" autocomplete="current-password">
-      <button class="btn-email-login" onclick="handleEmailLogin()">Sign In</button>
+      <button class="btn-email-login" onclick="handleEmailLogin()">Sign In →</button>
     </div>
     <div class="login-error" id="login-error"></div>
+
+    <div class="login-hint">
+      raj@kumar.family · fiona@kumar.family<br>
+      natasha@kumar.family · anya@kumar.family<br>
+      <span style="opacity:0.5">Password: Eagles2025!</span>
+    </div>
   </div>
 </div>
 
