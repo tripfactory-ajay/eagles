@@ -571,3 +571,14 @@ input,textarea { font-family:'DM Sans',sans-serif; }
   transition:opacity 0.25s, transform 0.25s; box-shadow:var(--shadow-lg);
 }
 .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* Onboarding dialogs */
+.ob-box { text-align:center; }
+.ob-steps { display:flex; gap:8px; justify-content:center; margin-bottom:20px; }
+.ob-step { width:32px; height:4px; border-radius:2px; background:var(--grey-light); transition:background 0.3s; }
+.ob-step.active { background:var(--gold); }
+.ob-step.done   { background:var(--navy); }
+.ob-icon-img { width:80px; height:80px; border-radius:20px; margin:0 auto 16px; display:block; box-shadow:0 4px 20px rgba(13,31,53,0.2); }
+.ob-emoji { font-size:52px; margin-bottom:12px; }
+.ios-tip-icon-img { width:36px; height:36px; border-radius:8px; flex-shrink:0; }
+

@@ -9,7 +9,10 @@
   <meta name="apple-mobile-web-app-title" content="Eagles">
   <title>Eagles 🦅</title>
   <link rel="manifest" href="./manifest.json">
-  <link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./assets/icons/icon-180.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="./assets/icons/icon-152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/icons/icon-180.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="./assets/icons/icon-192.png">
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
@@ -19,39 +22,63 @@
      ============================================================ -->
 
 <!-- Install confirm dialog (Android/Chrome) -->
-<div class="overlay-backdrop" id="install-dialog" style="display:none">
-  <div class="dialog-box">
-    <div class="dialog-icon">🦅</div>
+<!-- ═══════════════════════════════════════════════════════════
+     ONBOARDING — 3 step sequence shown once after first login
+     Step 1: Install app
+     Step 2: Allow notifications
+     Step 3: Allow camera / photos
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- Step 1 — Install -->
+<div class="overlay-backdrop" id="ob-install" style="display:none">
+  <div class="dialog-box ob-box">
+    <div class="ob-steps"><div class="ob-step active"></div><div class="ob-step"></div><div class="ob-step"></div></div>
+    <img src="./assets/icons/icon-192.png" class="ob-icon-img" alt="Eagles icon">
     <div class="dialog-title">Install Eagles</div>
-    <div class="dialog-body">Add Eagles to your home screen for the best experience — works offline too.</div>
-    <div class="dialog-btns">
-      <button class="btn-primary" onclick="confirmInstall()">Yes, Install</button>
-      <button class="btn-secondary" onclick="closeInstallDialog()">Not Now</button>
+    <div class="dialog-body">Add Eagles to your home screen so it opens like a real app — no browser bar, works offline too.</div>
+    <div class="dialog-btns" style="flex-direction:column;gap:10px">
+      <button class="btn-primary" onclick="obInstall()">📲 Add to Home Screen</button>
+      <button class="btn-secondary" onclick="obSkipInstall()">Skip for now</button>
     </div>
   </div>
 </div>
 
-<!-- iOS install guide — sits above bottom nav, never overlaps -->
+<!-- Step 2 — Notifications -->
+<div class="overlay-backdrop" id="ob-notify" style="display:none">
+  <div class="dialog-box ob-box">
+    <div class="ob-steps"><div class="ob-step done"></div><div class="ob-step active"></div><div class="ob-step"></div></div>
+    <div class="ob-emoji">🔔</div>
+    <div class="dialog-title">Family Alerts</div>
+    <div class="dialog-body">Get notified when Raj, Fiona, Natasha or Tanya posts a new memory or reacts to yours.</div>
+    <div class="dialog-btns" style="flex-direction:column;gap:10px">
+      <button class="btn-primary" onclick="obNotify()">🔔 Allow Notifications</button>
+      <button class="btn-secondary" onclick="obSkipNotify()">Skip for now</button>
+    </div>
+  </div>
+</div>
+
+<!-- Step 3 — Camera & Photos -->
+<div class="overlay-backdrop" id="ob-camera" style="display:none">
+  <div class="dialog-box ob-box">
+    <div class="ob-steps"><div class="ob-step done"></div><div class="ob-step done"></div><div class="ob-step active"></div></div>
+    <div class="ob-emoji">📸</div>
+    <div class="dialog-title">Photos & Camera</div>
+    <div class="dialog-body">Eagles needs access to your camera and photo library so you can add memories. You'll be asked when you first take or upload a photo.</div>
+    <div class="dialog-btns" style="flex-direction:column;gap:10px">
+      <button class="btn-primary" onclick="obCamera()">📷 Got It</button>
+      <button class="btn-secondary" onclick="obSkipCamera()">Skip</button>
+    </div>
+  </div>
+</div>
+
+<!-- iOS install tip — floats above bottom nav -->
 <div class="ios-tip" id="ios-tip">
   <div class="ios-tip-inner">
-    <span class="ios-tip-icon">🦅</span>
+    <img src="./assets/icons/icon-192.png" class="ios-tip-icon-img" alt="">
     <div class="ios-tip-text">
-      <strong>Install on iPhone:</strong> tap the <strong>Share ⎙</strong> button at the bottom of Safari, then tap <strong>"Add to Home Screen"</strong>
+      <strong>Install Eagles:</strong> tap <strong>Share ⎙</strong> at the bottom of Safari, then tap <strong>"Add to Home Screen"</strong>
     </div>
     <button class="ios-tip-close" onclick="document.getElementById('ios-tip').classList.remove('show')">✕</button>
-  </div>
-</div>
-
-<!-- Permissions welcome dialog (shown once after login) -->
-<div class="overlay-backdrop" id="permissions-dialog" style="display:none">
-  <div class="dialog-box">
-    <div class="dialog-icon">🔐</div>
-    <div class="dialog-title">A few permissions</div>
-    <div class="dialog-body">Eagles needs access to your <strong>camera & photos</strong> to add memories, and <strong>notifications</strong> to alert you when family posts something new.</div>
-    <div class="dialog-btns" style="flex-direction:column;gap:10px">
-      <button class="btn-primary" onclick="grantPermissions()">Allow Access</button>
-      <button class="btn-secondary" onclick="closePermissionsDialog()">Maybe Later</button>
-    </div>
   </div>
 </div>
 

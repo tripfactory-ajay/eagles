@@ -225,8 +225,8 @@ function onLoggedIn() {
   startFeed();
   navTo('home');
   seedIfEmpty();
-  // Show permissions dialog once, after a short delay
-  setTimeout(maybeShowPermissionsDialog, 2500);
+  // Show onboarding flow once (install → notifications → camera)
+  setTimeout(maybeShowOnboarding, 2500);
 }
 
 async function seedIfEmpty() {
@@ -1070,88 +1070,123 @@ function saveAvatar(data) {
 }
 
 // ── PWA Install ───────────────────────────────────────────────
+// ── PWA Install setup ─────────────────────────────────────────
 function setupInstall() {
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     deferredInstall = e;
-    // Show install banner in profile automatically after a few seconds
-    // so users know they can install
   });
   window.addEventListener('appinstalled', () => {
     deferredInstall = null;
-    showToast('🦅 Eagles installed! Check your home screen.');
-    // Ask for notifications right after install
-    setTimeout(requestNotifications, 1500);
+    hideAllOb();
+    showToast('🦅 Eagles installed! Find it on your home screen.');
+    setTimeout(() => obShowStep('ob-notify'), 1200);
   });
 }
 
-function triggerInstall() {
-  const standalone = window.matchMedia('(display-mode:standalone)').matches || window.navigator.standalone;
-  if (standalone) { showToast('✅ Eagles is already installed!'); return; }
+// ── Onboarding — 3-step flow ──────────────────────────────────
+function maybeShowOnboarding() {
+  if (localStorage.getItem('eagles_onboarding_done')) return;
+  setTimeout(() => obShowStep('ob-install'), 2000);
+}
 
+function hideAllOb() {
+  ['ob-install','ob-notify','ob-camera'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+
+function obShowStep(id) {
+  hideAllOb();
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'flex';
+}
+
+// Step 1 — Install
+async function obInstall() {
+  const isStandalone = window.matchMedia('(display-mode:standalone)').matches || window.navigator.standalone;
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  if (isStandalone) { obShowStep('ob-notify'); return; }
+
   if (isIOS) {
-    // Show step-by-step Safari guide above nav
+    hideAllOb();
     const tip = document.getElementById('ios-tip');
-    if (tip) { tip.classList.add('show'); setTimeout(() => tip.classList.remove('show'), 16000); }
-    // Also ask for notifications now
-    setTimeout(requestNotifications, 500);
+    if (tip) { tip.classList.add('show'); setTimeout(() => tip.classList.remove('show'), 18000); }
+    setTimeout(() => obShowStep('ob-notify'), 800);
     return;
   }
 
-  // Android / Chrome — show confirm dialog
   if (deferredInstall) {
-    document.getElementById('install-dialog').style.display = 'flex';
-  } else {
-    // Prompt already used or not available — give manual instructions
-    showToast('In Chrome: tap ⋮ menu → "Add to Home screen"');
-  }
-}
-
-async function confirmInstall() {
-  closeInstallDialog();
-  if (deferredInstall) {
-    const result = await deferredInstall.prompt();
+    hideAllOb();
+    try {
+      await deferredInstall.prompt();
+      setTimeout(() => obShowStep('ob-notify'), 3000);
+    } catch { obShowStep('ob-notify'); }
     deferredInstall = null;
-    // Ask for notifications after user chooses to install
-    if (result?.outcome === 'accepted') {
-      setTimeout(requestNotifications, 1500);
-    }
+  } else {
+    showToast('Tip: In Chrome tap \u22EE \u2192 "Add to Home screen"');
+    obShowStep('ob-notify');
   }
 }
 
-function closeInstallDialog() {
-  const d = document.getElementById('install-dialog');
-  if (d) d.style.display = 'none';
-}
+function obSkipInstall() { obShowStep('ob-notify'); }
 
-// ── Permissions dialog ────────────────────────────────────────
-function maybeShowPermissionsDialog() {
-  if (localStorage.getItem('eagles_perms_asked')) return;
-  localStorage.setItem('eagles_perms_asked', '1');
-  const d = document.getElementById('permissions-dialog');
-  if (d) d.style.display = 'flex';
-}
-
-async function grantPermissions() {
-  closePermissionsDialog();
+// Step 2 — Notifications
+async function obNotify() {
   if ('Notification' in window && Notification.permission === 'default') {
-    await Notification.requestPermission();
-    showToast('🔔 Notifications enabled!');
+    const result = await Notification.requestPermission();
+    if (result === 'granted') showToast('\uD83D\uDD14 Notifications enabled!');
   }
+  obShowStep('ob-camera');
+}
+function obSkipNotify() { obShowStep('ob-camera'); }
+
+// Step 3 — Camera/Photos
+async function obCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    stream.getTracks().forEach(t => t.stop());
+    showToast('\uD83D\uDCF8 Camera access granted!');
+  } catch { /* will ask at point of use */ }
+  obDone();
+}
+function obSkipCamera() { obDone(); }
+
+function obDone() {
+  hideAllOb();
+  localStorage.setItem('eagles_onboarding_done', '1');
 }
 
-function closePermissionsDialog() {
-  const d = document.getElementById('permissions-dialog');
-  if (d) d.style.display = 'none';
+// Profile button — Install Eagles App
+function triggerInstall() {
+  const isStandalone = window.matchMedia('(display-mode:standalone)').matches || window.navigator.standalone;
+  if (isStandalone) { showToast('\u2705 Eagles is already installed!'); return; }
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (isIOS) {
+    const tip = document.getElementById('ios-tip');
+    if (tip) { tip.classList.add('show'); setTimeout(() => tip.classList.remove('show'), 18000); }
+    return;
+  }
+  if (deferredInstall) { obShowStep('ob-install'); }
+  else { showToast('In Chrome: tap \u22EE \u2192 "Add to Home screen"'); }
 }
 
+// Profile button — Enable Notifications
 async function requestNotifications() {
   if (!('Notification' in window)) { showToast('Notifications not supported on this device'); return; }
-  if (Notification.permission === 'granted') { showToast('🔔 Notifications already enabled!'); return; }
+  if (Notification.permission === 'granted') { showToast('\uD83D\uDD14 Notifications already enabled!'); return; }
   const result = await Notification.requestPermission();
-  showToast(result === 'granted' ? '🔔 Notifications enabled!' : 'Notifications blocked — check browser settings');
+  showToast(result === 'granted' ? '\uD83D\uDD14 Notifications enabled!' : 'Blocked \u2014 enable in device Settings');
 }
+
+// Legacy aliases so nothing breaks
+function maybeShowPermissionsDialog() { maybeShowOnboarding(); }
+function closePermissionsDialog() { hideAllOb(); }
+function closeInstallDialog() { hideAllOb(); }
+function confirmInstall() { obInstall(); }
+function grantPermissions() { obNotify(); }
 
 // ── iCal export ───────────────────────────────────────────────
 async function exportCalendar() {
