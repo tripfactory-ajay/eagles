@@ -67,11 +67,15 @@ const SEED = [
 ];
 
 // ── Boot ──────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // Init Firebase
   firebase.initializeApp(firebaseConfig);
   db   = firebase.firestore();
   auth = firebase.auth();
+
+  // Set LOCAL persistence — user stays logged in across sessions
+  // This is what makes "remember me" work — Firebase keeps the token in IndexedDB
+  await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
   // Wire everything up
   setupNav();
@@ -80,19 +84,20 @@ document.addEventListener('DOMContentLoaded', () => {
   setupInstall();
   wireEmailLogin();
 
-  // Auth observer — fires immediately if already logged in
+  // Auth observer — fires immediately if already logged in (remembered session)
+  // If logged in: skip splash + login entirely, go straight to app
   auth.onAuthStateChanged(user => {
     if (user) {
       currentUser = user;
+      // Already logged in — skip splash, go straight to app
+      showScreen('app');
       onLoggedIn();
     } else {
       currentUser = null;
-      // Only show login after splash (splash auto-advances to login)
+      // Not logged in — show splash then login
+      setTimeout(() => showScreen('login'), 1800);
     }
   });
-
-  // Advance splash → login after 1.8s
-  setTimeout(() => showScreen('login'), 1800);
 
   // Register service worker
   if ('serviceWorker' in navigator) {
@@ -164,15 +169,29 @@ function wireEmailLogin() {
 }
 
 async function handleEmailLogin() {
-  const email = (document.getElementById('inp-email')?.value || '').trim();
-  const pass  = document.getElementById('inp-password')?.value || '';
+  const email    = (document.getElementById('inp-email')?.value || '').trim();
+  const pass     = document.getElementById('inp-password')?.value || '';
+  const remember = document.getElementById('inp-remember')?.checked !== false; // default true
   if (!email || !pass) { showLoginError('Please enter your email and password.'); return; }
+
+  const btn = document.getElementById('btn-signin');
+  if (btn) { btn.disabled = true; btn.textContent = 'Signing in…'; }
   showLoading(true);
   hideLoginError();
+
   try {
+    // Set persistence based on "remember me"
+    // LOCAL = survives browser close (remember me ON)
+    // SESSION = clears when tab closes (remember me OFF)
+    const persistence = remember
+      ? firebase.auth.Auth.Persistence.LOCAL
+      : firebase.auth.Auth.Persistence.SESSION;
+    await auth.setPersistence(persistence);
     await auth.signInWithEmailAndPassword(email, pass);
+    // onAuthStateChanged fires → onLoggedIn()
   } catch (e) {
     showLoading(false);
+    if (btn) { btn.disabled = false; btn.textContent = 'Sign In →'; }
     showLoginError(friendlyAuthError(e));
   }
 }
@@ -698,29 +717,36 @@ async function saveMemory() {
   if (!selEmo) { showToast('Please pick a feeling');    return; }
 
   const btn = document.getElementById('btn-save');
-  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
-  showLoading(true);
+  const setBtn = txt => { if (btn) { btn.disabled = true; btn.textContent = txt; } };
+  const resetBtn = () => { if (btn) { btn.disabled = false; btn.textContent = '🦅 Save Memory'; } };
+
+  setBtn('⏳ Preparing…');
+  // Do NOT showLoading() — use button text as progress indicator instead
+  // This keeps the UI visible and feels faster
 
   let mediaURL = null;
   if (upFile) {
     try {
       if (upIsVideo) {
-        showToast('📤 Uploading video…');
+        setBtn('📤 Uploading video…');
         mediaURL = await uploadCloudinary(upFile, true);
       } else {
-        showToast('📤 Uploading photo…');
+        setBtn('🗜️ Compressing photo…');
         const compressed = await compressImage(upFile);
+        setBtn('📤 Uploading photo…');
         mediaURL = await uploadCloudinary(compressed, false);
       }
     } catch (e) {
       console.error('Upload error:', e);
-      showToast('Upload failed — saving memory without photo');
+      showToast('Upload failed — saving without photo');
+      // Continue saving without media rather than aborting
     }
   }
 
   const myUID = currentUser.uid;
   if (!selPeople.includes(myUID)) selPeople.unshift(myUID);
 
+  setBtn('💾 Saving…');
   try {
     await db.collection('eagles_memories').add({
       uid:           myUID,
@@ -744,8 +770,7 @@ async function saveMemory() {
     console.error('Save error:', e);
     showToast('Error saving — please try again');
   } finally {
-    showLoading(false);
-    if (btn) { btn.disabled = false; btn.textContent = '🦅 Save Memory'; }
+    resetBtn();
   }
 }
 
@@ -1049,10 +1074,14 @@ function setupInstall() {
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     deferredInstall = e;
+    // Show install banner in profile automatically after a few seconds
+    // so users know they can install
   });
   window.addEventListener('appinstalled', () => {
     deferredInstall = null;
-    showToast('🦅 Eagles installed on your home screen!');
+    showToast('🦅 Eagles installed! Check your home screen.');
+    // Ask for notifications right after install
+    setTimeout(requestNotifications, 1500);
   });
 }
 
@@ -1062,15 +1091,19 @@ function triggerInstall() {
 
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
   if (isIOS) {
+    // Show step-by-step Safari guide above nav
     const tip = document.getElementById('ios-tip');
-    if (tip) { tip.classList.add('show'); setTimeout(() => tip.classList.remove('show'), 14000); }
+    if (tip) { tip.classList.add('show'); setTimeout(() => tip.classList.remove('show'), 16000); }
+    // Also ask for notifications now
+    setTimeout(requestNotifications, 500);
     return;
   }
 
-  // Android / Chrome
+  // Android / Chrome — show confirm dialog
   if (deferredInstall) {
     document.getElementById('install-dialog').style.display = 'flex';
   } else {
+    // Prompt already used or not available — give manual instructions
     showToast('In Chrome: tap ⋮ menu → "Add to Home screen"');
   }
 }
@@ -1078,8 +1111,12 @@ function triggerInstall() {
 async function confirmInstall() {
   closeInstallDialog();
   if (deferredInstall) {
-    await deferredInstall.prompt();
+    const result = await deferredInstall.prompt();
     deferredInstall = null;
+    // Ask for notifications after user chooses to install
+    if (result?.outcome === 'accepted') {
+      setTimeout(requestNotifications, 1500);
+    }
   }
 }
 

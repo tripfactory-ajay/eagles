@@ -1,8 +1,17 @@
-const CACHE = 'eagles-v8';
-const ASSETS = ['./', './index.html', './style.css', './app.js', './firebase-config.js', './manifest.json'];
+const CACHE = 'eagles-v9';
+const ASSETS = [
+  '/eagles/',
+  '/eagles/index.html',
+  '/eagles/style.css',
+  '/eagles/app.js',
+  '/eagles/firebase-config.js',
+  '/eagles/manifest.json'
+];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(ASSETS).catch(() => {}))
+  );
   self.skipWaiting();
 });
 
@@ -33,7 +42,8 @@ self.addEventListener('push', e => {
   e.waitUntil(
     self.registration.showNotification(d.title, {
       body: d.body,
-      icon: './assets/icons/icon-192.png'
+      icon: '/eagles/assets/icons/icon-192.png',
+      badge: '/eagles/assets/icons/icon-192.png'
     })
   );
 });

@@ -110,7 +110,11 @@
     <div class="email-login-form">
       <input type="email" id="inp-email" placeholder="Email address" autocomplete="email">
       <input type="password" id="inp-password" placeholder="Password" autocomplete="current-password">
-      <button class="btn-email-login" onclick="handleEmailLogin()">Sign In →</button>
+      <label class="remember-me">
+        <input type="checkbox" id="inp-remember" checked>
+        <span>Remember me on this device</span>
+      </label>
+      <button class="btn-email-login" id="btn-signin" onclick="handleEmailLogin()">Sign In →</button>
     </div>
     <div class="login-error" id="login-error"></div>
 

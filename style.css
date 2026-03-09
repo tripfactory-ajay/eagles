@@ -103,6 +103,14 @@ input,textarea { font-family:'DM Sans',sans-serif; }
   transition:transform 0.15s, box-shadow 0.15s;
 }
 .btn-email-login:active { transform:scale(0.98); box-shadow:0 2px 10px rgba(201,168,76,0.3); }
+.remember-me {
+  display:flex; align-items:center; gap:10px; cursor:pointer;
+  color:rgba(255,255,255,0.55); font-size:13px; padding:2px 0;
+}
+.remember-me input[type="checkbox"] {
+  width:18px; height:18px; accent-color:var(--gold);
+  border-radius:4px; cursor:pointer; flex-shrink:0;
+}
 .login-error {
   display:none; width:100%; padding:10px 14px;
   border-radius:var(--radius-sm); background:rgba(255,80,80,0.12);
