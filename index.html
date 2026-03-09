@@ -15,10 +15,10 @@
 <body>
 
 <!-- ============================================================
-     GLOBAL OVERLAYS (always present, toggled via JS)
+     GLOBAL OVERLAYS
      ============================================================ -->
 
-<!-- Install confirm dialog -->
+<!-- Install confirm dialog (Android/Chrome) -->
 <div class="overlay-backdrop" id="install-dialog" style="display:none">
   <div class="dialog-box">
     <div class="dialog-icon">🦅</div>
@@ -31,14 +31,27 @@
   </div>
 </div>
 
-<!-- iOS tip — sits above bottom nav -->
+<!-- iOS install guide — sits above bottom nav, never overlaps -->
 <div class="ios-tip" id="ios-tip">
   <div class="ios-tip-inner">
     <span class="ios-tip-icon">🦅</span>
     <div class="ios-tip-text">
-      <strong>Install on iPhone:</strong> tap <strong>Share ⎙</strong> then <strong>Add to Home Screen</strong>
+      <strong>Install on iPhone:</strong> tap the <strong>Share ⎙</strong> button at the bottom of Safari, then tap <strong>"Add to Home Screen"</strong>
     </div>
     <button class="ios-tip-close" onclick="document.getElementById('ios-tip').classList.remove('show')">✕</button>
+  </div>
+</div>
+
+<!-- Permissions welcome dialog (shown once after login) -->
+<div class="overlay-backdrop" id="permissions-dialog" style="display:none">
+  <div class="dialog-box">
+    <div class="dialog-icon">🔐</div>
+    <div class="dialog-title">A few permissions</div>
+    <div class="dialog-body">Eagles needs access to your <strong>camera & photos</strong> to add memories, and <strong>notifications</strong> to alert you when family posts something new.</div>
+    <div class="dialog-btns" style="flex-direction:column;gap:10px">
+      <button class="btn-primary" onclick="grantPermissions()">Allow Access</button>
+      <button class="btn-secondary" onclick="closePermissionsDialog()">Maybe Later</button>
+    </div>
   </div>
 </div>
 
@@ -51,20 +64,20 @@
     </div>
     <p class="modal-section-label">📸 Upload a photo</p>
     <div class="avatar-upload-row">
-      <button class="btn-avatar-upload" onclick="document.getElementById('av-photo').click()">🖼️ Gallery</button>
-      <button class="btn-avatar-upload" onclick="document.getElementById('av-camera').click()">📷 Selfie</button>
+      <button class="btn-avatar-upload" onclick="document.getElementById('av-gallery').click()">🖼️ Gallery</button>
+      <button class="btn-avatar-upload" onclick="document.getElementById('av-camera').click()">📷 Camera</button>
     </div>
-    <input type="file" id="av-photo" accept="image/*" style="display:none">
+    <!-- Gallery: no capture attribute — opens photo library -->
+    <input type="file" id="av-gallery" accept="image/*" style="display:none">
+    <!-- Camera: capture=user opens front camera -->
     <input type="file" id="av-camera" accept="image/*" capture="user" style="display:none">
-    <p class="modal-section-label" style="margin-top:20px">🎭 Pick a character</p>
+    <p class="modal-section-label" style="margin-top:16px">🎭 Pick a character</p>
     <div class="avatar-emoji-grid" id="avatar-emoji-grid"></div>
   </div>
 </div>
 
 <!-- Loading overlay -->
-<div class="loading-overlay" id="loading-overlay">
-  <div class="spinner"></div>
-</div>
+<div class="loading-overlay" id="loading-overlay"><div class="spinner"></div></div>
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
@@ -84,18 +97,21 @@
 </div>
 
 <!-- ============================================================
-     SCREEN: LOGIN
+     SCREEN: LOGIN  (demo button only — no family cards)
      ============================================================ -->
 <div class="screen" id="screen-login" style="display:none">
   <div class="login-inner">
     <div class="login-header">
       <div class="login-eagle">🦅</div>
       <div class="login-title">EAGLES</div>
-      <div class="login-sub">Who's flying today?</div>
+      <div class="login-sub">Kumar Family Memories</div>
     </div>
 
-    <!-- Tap-your-name cards -->
-    <div class="family-grid" id="family-grid"></div>
+    <!-- Demo login — main CTA -->
+    <button class="btn-demo-login" id="btn-demo" onclick="demoLogin()">
+      <span class="demo-btn-icon">🦅</span>
+      <span>Enter as Demo User</span>
+    </button>
 
     <!-- Email fallback -->
     <div class="login-divider"><span>or sign in with email</span></div>
@@ -116,10 +132,8 @@
   <!-- Header -->
   <div class="app-header">
     <div class="header-brand">🦅 EAGLES</div>
-    <div class="header-avatar" id="header-avatar" onclick="navTo('profile')">R</div>
+    <div class="header-avatar" id="header-avatar" onclick="navTo('profile')">U</div>
   </div>
-
-  <!-- Pages (only one visible at a time) -->
 
   <!-- HOME -->
   <div class="page" id="page-home" style="display:block">
@@ -137,12 +151,22 @@
   <div class="page" id="page-add" style="display:none">
     <div class="add-scroll">
       <div class="page-title">New Memory</div>
+
+      <!-- Media upload area with explicit camera + gallery buttons -->
       <div class="upload-area" id="upload-area">
         <div class="upload-area-icon">📷</div>
-        <div class="upload-area-text">Tap to add photo or video</div>
-        <div class="upload-area-hint">Auto-compressed · Videos up to 20s</div>
+        <div class="upload-area-text">Add a photo or video</div>
+        <div class="upload-btns-row">
+          <button class="upload-btn" onclick="openCamera()">📷 Camera</button>
+          <button class="upload-btn" onclick="openGallery()">🖼️ Gallery</button>
+          <button class="upload-btn" onclick="openVideoGallery()">🎬 Video</button>
+        </div>
       </div>
-      <input type="file" id="media-input" accept="image/*,video/*" style="display:none">
+      <!-- Separate inputs for camera / gallery / video — no capture on gallery -->
+      <input type="file" id="input-camera"  accept="image/*"       capture="environment" style="display:none">
+      <input type="file" id="input-gallery" accept="image/*"                             style="display:none">
+      <input type="file" id="input-video"   accept="video/*"                             style="display:none">
+
       <div class="add-form">
         <div class="field"><label>📅 Date</label><input type="date" id="f-date"></div>
         <div class="field"><label>📍 Location</label><input type="text" id="f-location" placeholder="e.g. Dubai, UAE"></div>
@@ -185,10 +209,10 @@
   <div class="page" id="page-profile" style="display:none">
     <div class="profile-scroll">
       <div class="profile-hero">
-        <div class="profile-av" id="profile-av" onclick="openAvatarModal()">R</div>
+        <div class="profile-av" id="profile-av" onclick="openAvatarModal()">U</div>
         <div class="profile-av-hint">Tap to change</div>
-        <div class="profile-name" id="profile-name">Raj Kumar</div>
-        <div class="profile-role" id="profile-role">Dad</div>
+        <div class="profile-name" id="profile-name">Demo User</div>
+        <div class="profile-role" id="profile-role">Family</div>
       </div>
       <div class="profile-stats">
         <div class="stat"><div class="stat-num" id="stat-mem">–</div><div class="stat-lbl">Memories</div></div>
@@ -211,24 +235,14 @@
 
   <!-- Bottom Nav -->
   <nav class="bottom-nav">
-    <div class="nav-item active" data-page="home">
-      <div class="nav-icon">🏠</div><div class="nav-lbl">Home</div>
-    </div>
-    <div class="nav-item" data-page="calendar">
-      <div class="nav-icon">📅</div><div class="nav-lbl">Calendar</div>
-    </div>
-    <div class="nav-item nav-add-item" data-page="add">
-      <div class="nav-add-btn">+</div>
-    </div>
-    <div class="nav-item" data-page="activities">
-      <div class="nav-icon">⚡</div><div class="nav-lbl">Activities</div>
-    </div>
-    <div class="nav-item" data-page="profile">
-      <div class="nav-icon">👤</div><div class="nav-lbl">Profile</div>
-    </div>
+    <div class="nav-item active" data-page="home"><div class="nav-icon">🏠</div><div class="nav-lbl">Home</div></div>
+    <div class="nav-item" data-page="calendar"><div class="nav-icon">📅</div><div class="nav-lbl">Calendar</div></div>
+    <div class="nav-item nav-add-item" data-page="add"><div class="nav-add-btn">+</div></div>
+    <div class="nav-item" data-page="activities"><div class="nav-icon">⚡</div><div class="nav-lbl">Activities</div></div>
+    <div class="nav-item" data-page="profile"><div class="nav-icon">👤</div><div class="nav-lbl">Profile</div></div>
   </nav>
 
-</div><!-- end #screen-app -->
+</div><!-- end screen-app -->
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
