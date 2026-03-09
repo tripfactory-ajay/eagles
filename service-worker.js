@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eagles-v4';
+const CACHE_NAME = 'eagles-v5';
 const ASSETS = [
   './',
   './index.html',

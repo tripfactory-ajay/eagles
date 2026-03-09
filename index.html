@@ -14,12 +14,28 @@
 </head>
 <body>
 
-<!-- iOS INSTALL TIP — only shown when user taps Install button in profile -->
+<!-- INSTALL CONFIRM DIALOG (Android/Chrome) — shown only when user taps Install -->
+<div class="install-dialog" id="install-dialog">
+  <div class="install-dialog-box">
+    <div class="install-dialog-icon">🦅</div>
+    <div class="install-dialog-title">Install Eagles</div>
+    <div class="install-dialog-text">Add Eagles to your home screen for the best experience — it works just like an app, even offline.</div>
+    <div class="install-dialog-btns">
+      <button class="install-yes" onclick="confirmInstall()">Yes, Install</button>
+      <button class="install-no" onclick="dismissInstallConfirm()">Not Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- iOS INSTALL TIP — sits above bottom nav, no overlap -->
 <div class="ios-tip" id="ios-tip">
   <div class="ios-tip-inner">
-    <span style="font-size:28px">🦅</span>
-    <div><strong>Install Eagles on your iPhone</strong><br>Tap <strong>Share ⎙</strong> then tap <strong>"Add to Home Screen"</strong></div>
-    <button onclick="document.getElementById('ios-tip').classList.remove('show')" style="background:none;border:none;font-size:20px;cursor:pointer;padding:4px">✕</button>
+    <span style="font-size:26px;flex-shrink:0">🦅</span>
+    <div>
+      <strong style="color:var(--navy)">Install Eagles on iPhone</strong><br>
+      Tap <strong>Share</strong> <span style="font-size:15px">⎙</span> below, then <strong>"Add to Home Screen"</strong>
+    </div>
+    <button class="ios-tip-close" onclick="document.getElementById('ios-tip').classList.remove('show')">✕</button>
   </div>
 </div>
 
@@ -27,7 +43,7 @@
 <div class="modal-overlay" id="avatar-modal">
   <div class="modal-box">
     <div class="modal-header">
-      <div class="modal-title">Choose Your Avatar</div>
+      <div class="modal-title">Your Avatar</div>
       <button class="modal-close" id="avatar-modal-close">✕</button>
     </div>
     <div class="modal-section-title">📸 Upload a Photo</div>
@@ -43,26 +59,32 @@
 </div>
 
 <!-- SPLASH -->
-<div class="screen" id="splash">
+<div class="screen active" id="splash">
   <div class="splash-content">
     <div class="splash-eagle">🦅</div>
     <div class="splash-title">EAGLES</div>
-    <div class="splash-sub">Family Travel Memories</div>
-    <button class="btn-enter" id="btn-enter">Enter the Nest</button>
+    <div class="splash-sub">Kumar Family Memories</div>
+    <div class="splash-dots">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
   </div>
 </div>
 
-<!-- LOGIN -->
+<!-- LOGIN — tap your family member card -->
 <div class="screen" id="login">
-  <div class="login-box">
-    <div class="login-logo"><span>🦅 EAGLES</span><span>Kumar Family · Private</span></div>
-    <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com" autocomplete="email"></div>
-    <div class="form-group"><label>Password</label><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"></div>
-    <button class="btn-login" id="btn-login">Sign In</button>
-    <div class="divider">or</div>
-    <button class="btn-demo" id="btn-demo">🦅 Demo Login – Dad Raj Kumar</button>
-    <div class="login-error" id="login-error"></div>
+  <div class="login-top">
+    <div class="login-eagle">🦅</div>
+    <div class="login-title">EAGLES</div>
+    <div class="login-sub">Who's flying today?</div>
   </div>
+  <div class="family-cards" id="family-cards"></div>
+  <div class="login-divider"><span>or sign in with email</span></div>
+  <div class="email-form">
+    <input type="email" id="login-email" placeholder="Email address" autocomplete="email">
+    <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
+    <button class="btn-login-email" id="btn-do-login">Sign In</button>
+  </div>
+  <div class="login-error" id="login-error"></div>
 </div>
 
 <!-- MAIN APP -->
@@ -70,22 +92,20 @@
   <div class="app-header">
     <div class="header-logo">🦅 EAGLES</div>
     <div class="header-right">
-      <div class="header-notif">🔔<div class="notif-dot"></div></div>
       <div class="header-avatar" id="header-avatar" onclick="showPage('profile')">R</div>
     </div>
   </div>
 
   <!-- HOME -->
-  <div class="page" id="page-home">
-    <div class="feed-header"><div class="feed-title">Family Wall</div><div class="feed-sub">The Kumar family memories ✨</div></div>
-    <div class="story-row">
-      <div class="story-item" onclick="showPage('add')"><div class="story-ring"><div class="story-avatar" style="background:linear-gradient(135deg,#c9a84c,#e07b4a);font-size:26px">+</div></div><div class="story-name">Add</div></div>
-      <div class="story-item"><div class="story-ring"><div class="story-avatar" style="background:#1a3a5c">R</div></div><div class="story-name">Raj</div></div>
-      <div class="story-item"><div class="story-ring"><div class="story-avatar" style="background:#c8763a">F</div></div><div class="story-name">Fiona</div></div>
-      <div class="story-item"><div class="story-ring"><div class="story-avatar" style="background:#2d7d5a">N</div></div><div class="story-name">Natasha</div></div>
-      <div class="story-item"><div class="story-ring"><div class="story-avatar" style="background:#7d2d6b">T</div></div><div class="story-name">Tanya</div></div>
+  <div class="page active" id="page-home">
+    <div class="feed-header">
+      <div class="feed-title">Family Wall</div>
+      <div class="feed-sub">The Kumar family memories ✨</div>
     </div>
-    <div class="memory-feed" id="memory-feed"></div>
+    <div class="story-row" id="story-row"></div>
+    <div class="memory-feed" id="memory-feed">
+      <div class="feed-loading"><div class="skel"></div><div class="skel"></div></div>
+    </div>
   </div>
 
   <!-- ADD MEMORY -->
@@ -93,28 +113,37 @@
     <div class="add-page">
       <div class="page-title">New Memory</div>
       <div class="photo-upload-area" id="photo-upload-area">
-        <div class="photo-upload-icon">📷🎬</div>
-        <div class="photo-upload-text">Tap to add photo or video</div>
-        <div class="photo-upload-hint">Photos auto-compressed · Videos up to 20 seconds</div>
+        <div class="upload-icon">📷</div>
+        <div class="upload-text">Tap to add photo or video</div>
+        <div class="upload-hint">Auto-compressed · Videos up to 20s</div>
       </div>
-      <input type="file" id="media-input" accept="image/*,video/*">
-      <div class="form-field"><label>📅 Date</label><input type="date" id="memory-date"></div>
-      <div class="form-field"><label>📍 Location</label><input type="text" id="memory-location" placeholder="e.g. Dubai, UAE"></div>
-      <div class="form-field"><label>✏️ Caption</label><textarea id="memory-desc" placeholder="Tell the story of this memory…"></textarea></div>
-      <div class="form-field"><label>⚡ Activity</label><div class="chip-group" id="activity-chips"></div></div>
-      <div class="form-field"><label>💛 How did it feel?</label><div class="chip-group" id="emotion-chips"></div></div>
-      <div class="form-field"><label>👥 Who's in this memory?</label><div class="chip-group" id="tag-chips"></div></div>
-      <button class="btn-submit" id="btn-submit-memory">🦅 Save Memory</button>
+      <input type="file" id="media-input" accept="image/*,video/*" style="display:none">
+      <div class="add-form">
+        <div class="form-field"><label>📅 Date</label><input type="date" id="memory-date"></div>
+        <div class="form-field"><label>📍 Location</label><input type="text" id="memory-location" placeholder="e.g. Dubai, UAE"></div>
+        <div class="form-field"><label>✏️ Caption</label><textarea id="memory-desc" placeholder="Tell the story of this memory…" rows="3"></textarea></div>
+        <div class="form-field"><label>⚡ Activity</label><div class="chip-group" id="activity-chips"></div></div>
+        <div class="form-field"><label>💛 Feeling</label><div class="chip-group" id="emotion-chips"></div></div>
+        <div class="form-field"><label>👥 Who's in it?</label><div class="chip-group" id="tag-chips"></div></div>
+        <button class="btn-submit" id="btn-submit-memory">🦅 Save Memory</button>
+      </div>
     </div>
   </div>
 
   <!-- CALENDAR -->
   <div class="page" id="page-calendar">
-    <div class="calendar-page">
+    <div class="cal-page">
       <div class="page-title">Memory Calendar</div>
-      <div class="cal-nav"><button id="cal-prev">‹</button><div class="cal-month" id="cal-month-label"></div><button id="cal-next">›</button></div>
+      <div class="cal-nav">
+        <button class="cal-arrow" id="cal-prev">‹</button>
+        <div class="cal-month-label" id="cal-month-label"></div>
+        <button class="cal-arrow" id="cal-next">›</button>
+      </div>
       <div class="cal-grid" id="cal-grid"></div>
-      <div style="margin-top:24px"><div class="cal-memories-title" id="cal-memories-title">Select a day to view memories</div><div id="cal-memories-list"></div></div>
+      <div style="padding-top:20px">
+        <div class="cal-memories-title" id="cal-memories-title" style="font-weight:600;color:var(--navy);margin-bottom:12px">Tap a day to see memories</div>
+        <div id="cal-memories-list"></div>
+      </div>
     </div>
   </div>
 
@@ -132,33 +161,34 @@
     <div class="profile-page">
       <div class="profile-hero">
         <div class="profile-avatar-wrap" id="profile-avatar" onclick="openAvatarPicker()">R</div>
-        <div style="font-size:11px;color:var(--gold);margin-top:4px;letter-spacing:1px">TAP TO CHANGE</div>
+        <div class="profile-avatar-hint">Tap to change</div>
         <div class="profile-name" id="profile-name">Raj Kumar</div>
         <div class="profile-role" id="profile-role">Dad</div>
       </div>
       <div class="profile-stats">
-        <div class="profile-stat"><div class="profile-stat-num" id="stat-memories">0</div><div class="profile-stat-label">Memories</div></div>
-        <div class="profile-stat"><div class="profile-stat-num" id="stat-likes">0</div><div class="profile-stat-label">Likes Got</div></div>
-        <div class="profile-stat"><div class="profile-stat-num" id="stat-liked">0</div><div class="profile-stat-label">Likes Given</div></div>
+        <div class="profile-stat"><div class="profile-stat-num" id="stat-memories">–</div><div class="profile-stat-label">Memories</div></div>
+        <div class="profile-stat"><div class="profile-stat-num" id="stat-likes">–</div><div class="profile-stat-label">Likes Got</div></div>
+        <div class="profile-stat"><div class="profile-stat-num" id="stat-liked">–</div><div class="profile-stat-label">Likes Given</div></div>
       </div>
       <div class="family-section">
         <div class="section-title">The Kumar Family 🦅</div>
         <div id="family-roster"></div>
       </div>
       <div class="profile-actions">
-        <button class="profile-action-btn" onclick="openAvatarPicker()"><span>🖼️</span> Change Profile Picture</button>
-        <button class="profile-action-btn" onclick="triggerInstall()"><span>📲</span> Install Eagles App</button>
-        <button class="profile-action-btn" onclick="exportToCalendar()"><span>📅</span> Export to Outlook / Calendar</button>
-        <button class="profile-action-btn" onclick="requestNotifications()"><span>🔔</span> Enable Notifications</button>
-        <button class="profile-action-btn danger" onclick="logout()"><span>🚪</span> Sign Out</button>
+        <button class="profile-action-btn" onclick="openAvatarPicker()">🖼️ Change Profile Picture</button>
+        <button class="profile-action-btn" onclick="triggerInstall()">📲 Install Eagles App</button>
+        <button class="profile-action-btn" onclick="exportToCalendar()">📅 Export to Outlook</button>
+        <button class="profile-action-btn" onclick="requestNotifications()">🔔 Enable Notifications</button>
+        <button class="profile-action-btn danger" onclick="logout()">🚪 Sign Out</button>
       </div>
     </div>
   </div>
 
+  <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <div class="nav-item active" data-page="home"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
     <div class="nav-item" data-page="calendar"><div class="nav-icon">📅</div><div class="nav-label">Calendar</div></div>
-    <div class="nav-item add-btn" data-page="add"><div class="nav-icon-wrap">+</div><div class="nav-label" style="color:var(--grey);font-size:10px;margin-top:2px">Add</div></div>
+    <div class="nav-item nav-add" data-page="add"><div class="nav-icon-wrap">+</div></div>
     <div class="nav-item" data-page="activities"><div class="nav-icon">⚡</div><div class="nav-label">Activities</div></div>
     <div class="nav-item" data-page="profile"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
   </nav>
