@@ -14,53 +14,66 @@
 </head>
 <body>
 
-<!-- INSTALL CONFIRM DIALOG (Android/Chrome) — shown only when user taps Install -->
-<div class="install-dialog" id="install-dialog">
-  <div class="install-dialog-box">
-    <div class="install-dialog-icon">🦅</div>
-    <div class="install-dialog-title">Install Eagles</div>
-    <div class="install-dialog-text">Add Eagles to your home screen for the best experience — it works just like an app, even offline.</div>
-    <div class="install-dialog-btns">
-      <button class="install-yes" onclick="confirmInstall()">Yes, Install</button>
-      <button class="install-no" onclick="dismissInstallConfirm()">Not Now</button>
+<!-- ============================================================
+     GLOBAL OVERLAYS (always present, toggled via JS)
+     ============================================================ -->
+
+<!-- Install confirm dialog -->
+<div class="overlay-backdrop" id="install-dialog" style="display:none">
+  <div class="dialog-box">
+    <div class="dialog-icon">🦅</div>
+    <div class="dialog-title">Install Eagles</div>
+    <div class="dialog-body">Add Eagles to your home screen for the best experience — works offline too.</div>
+    <div class="dialog-btns">
+      <button class="btn-primary" onclick="confirmInstall()">Yes, Install</button>
+      <button class="btn-secondary" onclick="closeInstallDialog()">Not Now</button>
     </div>
   </div>
 </div>
 
-<!-- iOS INSTALL TIP — sits above bottom nav, no overlap -->
+<!-- iOS tip — sits above bottom nav -->
 <div class="ios-tip" id="ios-tip">
   <div class="ios-tip-inner">
-    <span style="font-size:26px;flex-shrink:0">🦅</span>
-    <div>
-      <strong style="color:var(--navy)">Install Eagles on iPhone</strong><br>
-      Tap <strong>Share</strong> <span style="font-size:15px">⎙</span> below, then <strong>"Add to Home Screen"</strong>
+    <span class="ios-tip-icon">🦅</span>
+    <div class="ios-tip-text">
+      <strong>Install on iPhone:</strong> tap <strong>Share ⎙</strong> then <strong>Add to Home Screen</strong>
     </div>
     <button class="ios-tip-close" onclick="document.getElementById('ios-tip').classList.remove('show')">✕</button>
   </div>
 </div>
 
-<!-- AVATAR PICKER MODAL -->
-<div class="modal-overlay" id="avatar-modal">
+<!-- Avatar picker modal -->
+<div class="overlay-backdrop" id="avatar-modal" style="display:none">
   <div class="modal-box">
     <div class="modal-header">
-      <div class="modal-title">Your Avatar</div>
-      <button class="modal-close" id="avatar-modal-close">✕</button>
+      <span class="modal-title">Choose Your Avatar</span>
+      <button class="modal-close-btn" onclick="closeAvatarModal()">✕</button>
     </div>
-    <div class="modal-section-title">📸 Upload a Photo</div>
-    <div class="avatar-upload-btns">
-      <button class="avatar-upload-btn" id="avatar-photo-btn">🖼️ Choose Photo</button>
-      <button class="avatar-upload-btn" id="avatar-camera-btn">📷 Take Selfie</button>
+    <p class="modal-section-label">📸 Upload a photo</p>
+    <div class="avatar-upload-row">
+      <button class="btn-avatar-upload" onclick="document.getElementById('av-photo').click()">🖼️ Gallery</button>
+      <button class="btn-avatar-upload" onclick="document.getElementById('av-camera').click()">📷 Selfie</button>
     </div>
-    <input type="file" id="avatar-photo-input" accept="image/*" style="display:none">
-    <input type="file" id="avatar-camera-input" accept="image/*" capture="user" style="display:none">
-    <div class="modal-section-title" style="margin-top:20px">🎭 Pick a Character</div>
+    <input type="file" id="av-photo" accept="image/*" style="display:none">
+    <input type="file" id="av-camera" accept="image/*" capture="user" style="display:none">
+    <p class="modal-section-label" style="margin-top:20px">🎭 Pick a character</p>
     <div class="avatar-emoji-grid" id="avatar-emoji-grid"></div>
   </div>
 </div>
 
-<!-- SPLASH -->
-<div class="screen active" id="splash">
-  <div class="splash-content">
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ============================================================
+     SCREEN: SPLASH
+     ============================================================ -->
+<div class="screen" id="screen-splash" style="display:flex">
+  <div class="splash-inner">
     <div class="splash-eagle">🦅</div>
     <div class="splash-title">EAGLES</div>
     <div class="splash-sub">Kumar Family Memories</div>
@@ -70,132 +83,152 @@
   </div>
 </div>
 
-<!-- LOGIN — tap your family member card -->
-<div class="screen" id="login">
-  <div class="login-top">
-    <div class="login-eagle">🦅</div>
-    <div class="login-title">EAGLES</div>
-    <div class="login-sub">Who's flying today?</div>
+<!-- ============================================================
+     SCREEN: LOGIN
+     ============================================================ -->
+<div class="screen" id="screen-login" style="display:none">
+  <div class="login-inner">
+    <div class="login-header">
+      <div class="login-eagle">🦅</div>
+      <div class="login-title">EAGLES</div>
+      <div class="login-sub">Who's flying today?</div>
+    </div>
+
+    <!-- Tap-your-name cards -->
+    <div class="family-grid" id="family-grid"></div>
+
+    <!-- Email fallback -->
+    <div class="login-divider"><span>or sign in with email</span></div>
+    <div class="email-login-form">
+      <input type="email" id="inp-email" placeholder="Email address" autocomplete="email">
+      <input type="password" id="inp-password" placeholder="Password" autocomplete="current-password">
+      <button class="btn-email-login" onclick="handleEmailLogin()">Sign In</button>
+    </div>
+    <div class="login-error" id="login-error"></div>
   </div>
-  <div class="family-cards" id="family-cards"></div>
-  <div class="login-divider"><span>or sign in with email</span></div>
-  <div class="email-form">
-    <input type="email" id="login-email" placeholder="Email address" autocomplete="email">
-    <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
-    <button class="btn-login-email" id="btn-do-login">Sign In</button>
-  </div>
-  <div class="login-error" id="login-error"></div>
 </div>
 
-<!-- MAIN APP -->
-<div class="screen" id="app">
+<!-- ============================================================
+     SCREEN: APP
+     ============================================================ -->
+<div class="screen" id="screen-app" style="display:none">
+
+  <!-- Header -->
   <div class="app-header">
-    <div class="header-logo">🦅 EAGLES</div>
-    <div class="header-right">
-      <div class="header-avatar" id="header-avatar" onclick="showPage('profile')">R</div>
-    </div>
+    <div class="header-brand">🦅 EAGLES</div>
+    <div class="header-avatar" id="header-avatar" onclick="navTo('profile')">R</div>
   </div>
 
+  <!-- Pages (only one visible at a time) -->
+
   <!-- HOME -->
-  <div class="page active" id="page-home">
-    <div class="feed-header">
-      <div class="feed-title">Family Wall</div>
-      <div class="feed-sub">The Kumar family memories ✨</div>
+  <div class="page" id="page-home" style="display:block">
+    <div class="feed-hero">
+      <div class="feed-hero-title">Family Wall</div>
+      <div class="feed-hero-sub">The Kumar family memories ✨</div>
     </div>
     <div class="story-row" id="story-row"></div>
     <div class="memory-feed" id="memory-feed">
-      <div class="feed-loading"><div class="skel"></div><div class="skel"></div></div>
+      <div class="skel-wrap"><div class="skel"></div><div class="skel"></div></div>
     </div>
   </div>
 
   <!-- ADD MEMORY -->
-  <div class="page" id="page-add">
-    <div class="add-page">
+  <div class="page" id="page-add" style="display:none">
+    <div class="add-scroll">
       <div class="page-title">New Memory</div>
-      <div class="photo-upload-area" id="photo-upload-area">
-        <div class="upload-icon">📷</div>
-        <div class="upload-text">Tap to add photo or video</div>
-        <div class="upload-hint">Auto-compressed · Videos up to 20s</div>
+      <div class="upload-area" id="upload-area">
+        <div class="upload-area-icon">📷</div>
+        <div class="upload-area-text">Tap to add photo or video</div>
+        <div class="upload-area-hint">Auto-compressed · Videos up to 20s</div>
       </div>
       <input type="file" id="media-input" accept="image/*,video/*" style="display:none">
       <div class="add-form">
-        <div class="form-field"><label>📅 Date</label><input type="date" id="memory-date"></div>
-        <div class="form-field"><label>📍 Location</label><input type="text" id="memory-location" placeholder="e.g. Dubai, UAE"></div>
-        <div class="form-field"><label>✏️ Caption</label><textarea id="memory-desc" placeholder="Tell the story of this memory…" rows="3"></textarea></div>
-        <div class="form-field"><label>⚡ Activity</label><div class="chip-group" id="activity-chips"></div></div>
-        <div class="form-field"><label>💛 Feeling</label><div class="chip-group" id="emotion-chips"></div></div>
-        <div class="form-field"><label>👥 Who's in it?</label><div class="chip-group" id="tag-chips"></div></div>
-        <button class="btn-submit" id="btn-submit-memory">🦅 Save Memory</button>
+        <div class="field"><label>📅 Date</label><input type="date" id="f-date"></div>
+        <div class="field"><label>📍 Location</label><input type="text" id="f-location" placeholder="e.g. Dubai, UAE"></div>
+        <div class="field"><label>✏️ Caption</label><textarea id="f-caption" rows="3" placeholder="Tell the story…"></textarea></div>
+        <div class="field"><label>⚡ Activity</label><div class="chip-row" id="activity-chips"></div></div>
+        <div class="field"><label>💛 Feeling</label><div class="chip-row" id="emotion-chips"></div></div>
+        <div class="field"><label>👥 Tag family</label><div class="chip-row" id="tag-chips"></div></div>
+        <button class="btn-save" id="btn-save">🦅 Save Memory</button>
       </div>
     </div>
   </div>
 
   <!-- CALENDAR -->
-  <div class="page" id="page-calendar">
-    <div class="cal-page">
+  <div class="page" id="page-calendar" style="display:none">
+    <div class="cal-scroll">
       <div class="page-title">Memory Calendar</div>
       <div class="cal-nav">
         <button class="cal-arrow" id="cal-prev">‹</button>
-        <div class="cal-month-label" id="cal-month-label"></div>
+        <div class="cal-label" id="cal-label"></div>
         <button class="cal-arrow" id="cal-next">›</button>
       </div>
       <div class="cal-grid" id="cal-grid"></div>
-      <div style="padding-top:20px">
-        <div class="cal-memories-title" id="cal-memories-title" style="font-weight:600;color:var(--navy);margin-bottom:12px">Tap a day to see memories</div>
-        <div id="cal-memories-list"></div>
+      <div class="cal-day-memories">
+        <div class="cal-day-title" id="cal-day-title">Tap a day to see memories</div>
+        <div id="cal-day-list"></div>
       </div>
     </div>
   </div>
 
   <!-- ACTIVITIES -->
-  <div class="page" id="page-activities">
-    <div class="activities-page">
+  <div class="page" id="page-activities" style="display:none">
+    <div class="acts-scroll">
       <div class="page-title">Activities</div>
-      <div class="activity-filters" id="activity-filter-row"></div>
-      <div class="activities-grid" id="activities-grid"></div>
+      <div class="filter-row" id="filter-row"></div>
+      <div class="acts-grid" id="acts-grid"></div>
     </div>
   </div>
 
   <!-- PROFILE -->
-  <div class="page" id="page-profile">
-    <div class="profile-page">
+  <div class="page" id="page-profile" style="display:none">
+    <div class="profile-scroll">
       <div class="profile-hero">
-        <div class="profile-avatar-wrap" id="profile-avatar" onclick="openAvatarPicker()">R</div>
-        <div class="profile-avatar-hint">Tap to change</div>
+        <div class="profile-av" id="profile-av" onclick="openAvatarModal()">R</div>
+        <div class="profile-av-hint">Tap to change</div>
         <div class="profile-name" id="profile-name">Raj Kumar</div>
         <div class="profile-role" id="profile-role">Dad</div>
       </div>
       <div class="profile-stats">
-        <div class="profile-stat"><div class="profile-stat-num" id="stat-memories">–</div><div class="profile-stat-label">Memories</div></div>
-        <div class="profile-stat"><div class="profile-stat-num" id="stat-likes">–</div><div class="profile-stat-label">Likes Got</div></div>
-        <div class="profile-stat"><div class="profile-stat-num" id="stat-liked">–</div><div class="profile-stat-label">Likes Given</div></div>
+        <div class="stat"><div class="stat-num" id="stat-mem">–</div><div class="stat-lbl">Memories</div></div>
+        <div class="stat"><div class="stat-num" id="stat-got">–</div><div class="stat-lbl">Likes Got</div></div>
+        <div class="stat"><div class="stat-num" id="stat-gave">–</div><div class="stat-lbl">Likes Given</div></div>
       </div>
       <div class="family-section">
         <div class="section-title">The Kumar Family 🦅</div>
         <div id="family-roster"></div>
       </div>
-      <div class="profile-actions">
-        <button class="profile-action-btn" onclick="openAvatarPicker()">🖼️ Change Profile Picture</button>
-        <button class="profile-action-btn" onclick="triggerInstall()">📲 Install Eagles App</button>
-        <button class="profile-action-btn" onclick="exportToCalendar()">📅 Export to Outlook</button>
-        <button class="profile-action-btn" onclick="requestNotifications()">🔔 Enable Notifications</button>
-        <button class="profile-action-btn danger" onclick="logout()">🚪 Sign Out</button>
+      <div class="profile-btns">
+        <button class="profile-btn" onclick="openAvatarModal()">🖼️ Change Profile Picture</button>
+        <button class="profile-btn" onclick="triggerInstall()">📲 Install Eagles App</button>
+        <button class="profile-btn" onclick="exportCalendar()">📅 Export to Outlook</button>
+        <button class="profile-btn" onclick="requestNotifications()">🔔 Enable Notifications</button>
+        <button class="profile-btn danger" onclick="logout()">🚪 Sign Out</button>
       </div>
     </div>
   </div>
 
-  <!-- BOTTOM NAV -->
+  <!-- Bottom Nav -->
   <nav class="bottom-nav">
-    <div class="nav-item active" data-page="home"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
-    <div class="nav-item" data-page="calendar"><div class="nav-icon">📅</div><div class="nav-label">Calendar</div></div>
-    <div class="nav-item nav-add" data-page="add"><div class="nav-icon-wrap">+</div></div>
-    <div class="nav-item" data-page="activities"><div class="nav-icon">⚡</div><div class="nav-label">Activities</div></div>
-    <div class="nav-item" data-page="profile"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
+    <div class="nav-item active" data-page="home">
+      <div class="nav-icon">🏠</div><div class="nav-lbl">Home</div>
+    </div>
+    <div class="nav-item" data-page="calendar">
+      <div class="nav-icon">📅</div><div class="nav-lbl">Calendar</div>
+    </div>
+    <div class="nav-item nav-add-item" data-page="add">
+      <div class="nav-add-btn">+</div>
+    </div>
+    <div class="nav-item" data-page="activities">
+      <div class="nav-icon">⚡</div><div class="nav-lbl">Activities</div>
+    </div>
+    <div class="nav-item" data-page="profile">
+      <div class="nav-icon">👤</div><div class="nav-lbl">Profile</div>
+    </div>
   </nav>
-</div>
 
-<div class="toast" id="toast"></div>
-<div class="loading-overlay" id="loading-overlay"><div class="spinner"></div></div>
+</div><!-- end #screen-app -->
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
